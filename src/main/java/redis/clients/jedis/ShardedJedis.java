@@ -1,5 +1,6 @@
 package redis.clients.jedis;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -7,9 +8,11 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
+import redis.clients.jedis.exceptions.JedisDataException;
 import redis.clients.util.Hashing;
 
-public class ShardedJedis extends BinaryShardedJedis implements JedisCommands {
+public class ShardedJedis extends BinaryShardedJedis implements JedisCommands, 
+											MultiKeyCommands{
     public ShardedJedis(List<JedisShardInfo> shards) {
 	super(shards);
     }
@@ -570,4 +573,274 @@ public class ShardedJedis extends BinaryShardedJedis implements JedisCommands {
 	Jedis j = getShard(key);
 	return j.zscan(key, cursor);
     }
+
+    
+    //TODO Stubs for MultiKeyCommands interface methods
+	@Override
+	public Long del(String... keys) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<String> blpop(int timeout, String... keys) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<String> brpop(int timeout, String... keys) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<String> blpop(String... args) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<String> brpop(String... args) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Set<String> keys(String pattern) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<String> mget(String... keys) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String mset(String... keysvalues) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Long msetnx(String... keysvalues) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String rename(String oldkey, String newkey) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Long renamenx(String oldkey, String newkey) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String rpoplpush(String srckey, String dstkey) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Set<String> sdiff(String... keys) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Long sdiffstore(String dstkey, String... keys) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+    //TODO Implement multikeyjediscommands interface
+    /** This is copies from Jedis
+     * Return the members of a set resulting from the intersection of all the
+     * sets hold at the specified keys. Like in
+     * {@link #lrange(String, long, long) LRANGE} the result is sent to the
+     * client as a multi-bulk reply (see the protocol specification for more
+     * information). If just a single key is specified, then this command
+     * produces the same result as {@link #smembers(String) SMEMBERS}. Actually
+     * SMEMBERS is just syntax sugar for SINTER.
+     * <p>
+     * Non existing keys are considered like empty sets, so if one of the keys
+     * is missing an empty set is returned (since the intersection with an empty
+     * set always is an empty set).
+     * <p>
+     * Time complexity O(N*M) worst case where N is the cardinality of the
+     * smallest set and M the number of sets
+     * 
+     * @param keys
+     * @return Multi bulk reply, specifically the list of common elements.
+     */
+	@Override
+	public Set<String> sinter(final String... keys) {
+		checkIsInMulti(keys[0]);
+		Jedis j = getShard(keys[0]);
+		return j.sinter(keys);
+	}
+	
+
+
+
+	@Override
+	public Long sinterstore(String dstkey, String... keys) {
+		checkIsInMulti(keys[0]);
+		Jedis j = getShard(keys[0]);
+		return j.sinterstore(dstkey, keys);
+	}
+
+	@Override
+	public Long smove(String srckey, String dstkey, String member) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Long sort(String key, SortingParams sortingParameters, String dstkey) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Long sort(String key, String dstkey) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Set<String> sunion(String... keys) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Long sunionstore(String dstkey, String... keys) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+    public String watch(final String... keys) {
+    	checkIsInMulti(keys[0]);
+		Jedis j = getShard(keys[0]);
+		return j.watch(keys);
+    }
+	
+	@Override
+	public String unwatch() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	public String unwatch(String key) {
+		checkIsInMulti(key);
+		Jedis j = getShard(key);
+		return j.unwatch();
+	}
+
+	@Override
+	public Long zinterstore(String dstkey, String... sets) {
+		checkIsInMulti(sets[0]);
+		Jedis j = getShard(sets[0]);
+		return j.zinterstore(dstkey, sets);
+	}
+	
+
+	@Override
+	public Long zinterstore(String dstkey, ZParams params, String... sets) {
+		checkIsInMulti(sets[0]);
+		Jedis j = getShard(sets[0]);
+		return j.zinterstore(dstkey, params, sets);		
+	}
+
+	@Override
+	public Long zunionstore(String dstkey, String... sets) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Long zunionstore(String dstkey, ZParams params, String... sets) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String brpoplpush(String source, String destination, int timeout) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Long publish(String channel, String message) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void subscribe(JedisPubSub jedisPubSub, String... channels) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void psubscribe(JedisPubSub jedisPubSub, String... patterns) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String randomKey() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Long bitop(BitOP op, String destKey, String... srcKeys) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ScanResult<String> scan(int cursor) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ScanResult<String> scan(String cursor) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+    
+ 
+	protected void checkIsInMulti(String key) {
+		Client client = getShard(key).getClient();
+		if (client.isInMulti()) {
+			throw new JedisDataException(
+					"Cannot use Jedis when in Multi. Please use Jedis Transaction instead.");
+		}
+	}
+
+    public List<String> flushAll() {
+    	
+    	List<String> status = new ArrayList<String>();
+    	for (Jedis jedis : getAllShards()) {
+          jedis.flushAll();
+          //TODO get status reply from the shard - client.getStatusCodeReply();
+          
+    	}
+
+    	return status;
+    }
+
+    
 }

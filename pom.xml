@@ -66,6 +66,11 @@
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+         <groupId>org.yaml</groupId>
+         <artifactId>snakeyaml</artifactId>
+         <version>1.11</version>
+      </dependency>
 	</dependencies>
 
   <distributionManagement>
