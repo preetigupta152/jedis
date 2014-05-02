@@ -26,7 +26,7 @@ public class ShardedJedisCluster {
 		
 		// Create JedisShardInfo and add to shards
 		for(Node node : cfg.getNodes()){
-			shards.add(new JedisShardInfo(node.getHost(), node.getPort(), node.getName()));
+			shards.add(new JedisShardInfo(node.getHost(), node.getPort(), node.getName(), cfg.getWeight()));
 		}
 		pool =  new ShardedJedisPool(new GenericObjectPoolConfig(), shards, ShardedJedis.DEFAULT_KEY_TAG_PATTERN);
 	}

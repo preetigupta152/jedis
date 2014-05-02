@@ -64,6 +64,23 @@ public class JedisShardInfo extends ShardInfo<Jedis> {
 	this.port = port;
 	this.timeout = timeout;
     }
+    
+    public JedisShardInfo(String host, int port, String name, int weight) {
+    	super(weight);
+    	this.host = host;
+    	this.port = port;
+    	this.timeout = 2000;
+    	this.name = name;
+    }
+    
+    public JedisShardInfo(String host, int port, String name, int weight, int timeout ) {
+    	super(weight);
+    	this.host = host;
+    	this.port = port;
+    	this.timeout = timeout;
+    	this.name = name;
+    }
+    
 
     public JedisShardInfo(URI uri) {
 	super(Sharded.DEFAULT_WEIGHT);

@@ -57,11 +57,13 @@ public class Sharded<R, S extends ShardInfo<R>> {
 	    final S shardInfo = shards.get(i);
 	    if (shardInfo.getName() == null)
 		for (int n = 0; n < 160 * shardInfo.getWeight(); n++) {
+			  String shardNameForHash = "SHARD-" + i + "-NODE-" + n;
 		    nodes.put(this.algo.hash("SHARD-" + i + "-NODE-" + n),
 			    shardInfo);
 		}
 	    else
-		for (int n = 0; n < 160 * shardInfo.getWeight(); n++) {
+		for (int n = 0; n < 160 * shardInfo.getWeight() + 1; n++) {
+			String shardNameForHash = shardInfo.getName() + "*" + shardInfo.getWeight() + n;
 		    nodes.put(
 			    this.algo.hash(shardInfo.getName() + "*"
 				    + shardInfo.getWeight() + n), shardInfo);
