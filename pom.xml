@@ -71,6 +71,11 @@
          <artifactId>snakeyaml</artifactId>
          <version>1.11</version>
       </dependency>
+          <dependency>
+       <groupId>com.google.guava</groupId>
+       <artifactId>guava</artifactId>
+       <version>16.0.1</version>
+    </dependency>
 	</dependencies>
 
   <distributionManagement>
@@ -110,13 +115,13 @@
 					<attach>true</attach>
 				</configuration>
 				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
+				<execution>
+					<id>attach-sources</id>
+					<goals>
+						<goal>jar</goal>
+					</goals>
+				</execution>
+			</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

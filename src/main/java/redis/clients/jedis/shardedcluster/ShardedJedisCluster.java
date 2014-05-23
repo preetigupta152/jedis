@@ -28,7 +28,18 @@ public class ShardedJedisCluster {
 		for(Node node : cfg.getNodes()){
 			shards.add(new JedisShardInfo(node.getHost(), node.getPort(), node.getName(), cfg.getWeight()));
 		}
-		pool =  new ShardedJedisPool(new GenericObjectPoolConfig(), shards, ShardedJedis.DEFAULT_KEY_TAG_PATTERN);
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+		
+		//TODO get these config params from properties
+		poolConfig.setBlockWhenExhausted(GenericObjectPoolConfig.DEFAULT_BLOCK_WHEN_EXHAUSTED);
+		poolConfig.setMaxTotal(Integer.valueOf("100"));
+/*		poolConfig.setTestOnBorrow(true);
+	  poolConfig.setTestOnReturn(true);*/
+	    
+		pool =  new ShardedJedisPool(poolConfig, shards, ShardedJedis.DEFAULT_KEY_TAG_PATTERN);
+		
+		
+    
 	}
 	
 	public static ShardedJedisPool getPool(){
