@@ -1,17 +1,11 @@
 package redis.clients.jedis.shardrebalancer;
 
-import java.util.List;
+
 import java.util.Timer;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.Multimap;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -149,6 +143,8 @@ public class ShardRebalancer {
 				//done = threadPoolExecutor.await(20, TimeUnit.MILLISECONDS);
 				done = threadPoolExecutor.await(20, TimeUnit.MILLISECONDS);
 			} while(!done);
+			System.out.println("Outstanding tasks = " + threadPoolExecutor.getTaskCount());
+			System.out.println("Completed tasks = " + threadPoolExecutor.getCompletedTaskCount());
 		} catch (InterruptedException e) {
 			System.out.println(e);
 		}

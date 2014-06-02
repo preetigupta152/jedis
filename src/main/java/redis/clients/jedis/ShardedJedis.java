@@ -663,8 +663,8 @@ public class ShardedJedis extends BinaryShardedJedis implements JedisCommands,
     //TODO Implement multikeyjediscommands interface
     /** This is copies from Jedis
      * Return the members of a set resulting from the intersection of all the
-     * sets hold at the specified keys. Like in
-     * {@link #lrange(String, long, long) LRANGE} the result is sent to the
+     * sets hold at the specified keys. <b>All keys should have same HashTag.</b>
+     * Like in {@link #lrange(String, long, long) LRANGE} the result is sent to the
      * client as a multi-bulk reply (see the protocol specification for more
      * information). If just a single key is specified, then this command
      * produces the same result as {@link #smembers(String) SMEMBERS}. Actually
@@ -687,9 +687,10 @@ public class ShardedJedis extends BinaryShardedJedis implements JedisCommands,
 		return j.sinter(keys);
 	}
 	
-
-
-
+	/** 
+	 * Same as sinterstore of Jedis
+	 * <b>All keys should have same HashTag.</b>
+	 */
 	@Override
 	public Long sinterstore(String dstkey, String... keys) {
 		checkIsInMulti(keys[0]);
@@ -745,7 +746,11 @@ public class ShardedJedis extends BinaryShardedJedis implements JedisCommands,
 		Jedis j = getShard(key);
 		return j.unwatch();
 	}
-
+	
+	/** 
+	 * Same as zinterstore of Jedis
+	 * <b>All sets and dstkey should have same HashTag.</b>
+	 */
 	@Override
 	public Long zinterstore(String dstkey, String... sets) {
 		checkIsInMulti(sets[0]);
@@ -754,6 +759,10 @@ public class ShardedJedis extends BinaryShardedJedis implements JedisCommands,
 	}
 	
 
+	/** 
+	 * Same as zinterstore of Jedis
+	 * <b>All sets and dstkey should have same HashTag.</b>
+	 */
 	@Override
 	public Long zinterstore(String dstkey, ZParams params, String... sets) {
 		checkIsInMulti(sets[0]);

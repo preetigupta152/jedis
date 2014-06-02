@@ -31,6 +31,8 @@ public class Migrator implements Callable<Integer> {
 	private void migrate() {
 		Jedis sourceJedis = sourcePool.getResource();
 		String sourceHost = sourceJedis.getClient().getHost();
+		int sourcePort = sourceJedis.getClient().getPort();
+		
 		if(sourceJedis != null){
 			sourcePool.returnResource(sourceJedis);
 		}
@@ -45,6 +47,8 @@ public class Migrator implements Callable<Integer> {
 			for (String key : result.getResult()) {
 				Jedis j = sJedis.getShard(key);
 				if (!j.getClient().getHost().equalsIgnoreCase(sourceHost)) {
+					keysToMigrate.put(sJedis.getKeyTag(key), key);
+				}else if(j.getClient().getPort() != (sourcePort)) {
 					keysToMigrate.put(sJedis.getKeyTag(key), key);
 				}
 
