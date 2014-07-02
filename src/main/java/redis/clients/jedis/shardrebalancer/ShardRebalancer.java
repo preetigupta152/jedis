@@ -1,6 +1,7 @@
 package redis.clients.jedis.shardrebalancer;
 
 
+import java.util.Properties;
 import java.util.Timer;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +35,8 @@ public class ShardRebalancer {
   	final String METHOD_NAME = "intializeJedisPool";  
   	
   	String clusterConfigFile= System.getProperty(JEDIS_CLUSTER_CONFIG);
-    ShardedJedisCluster.bootstrap(clusterConfigFile);
+  	Properties properties= System.getProperties();
+    ShardedJedisCluster.bootstrap(clusterConfigFile, properties);
     
     String redisHost = System.getProperty(REDIS_SOURCE_HOST);
     String redisPort = System.getProperty(REDIS_SOURCE_PORT);
