@@ -1,6 +1,7 @@
 package redis.clients.jedis.shardrebalancer;
 
 
+import java.io.File;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.concurrent.Callable;
@@ -14,6 +15,7 @@ import redis.clients.jedis.JedisShardInfo;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.ShardedJedis;
+import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.jedis.shardedcluster.ShardedJedisCluster;
 
 public class ShardRebalancer {
@@ -22,49 +24,97 @@ public class ShardRebalancer {
 	private JedisShardInfo source = null;
 	private static JedisPool sourcePool = null;
 	
-	protected static final String REDIS_MAX_POOL_SIZE = "redis.maxPoolSize";
-	protected static final String REDIS_SOURCE_HOST = "redis.source.host";
-	protected static final String REDIS_SOURCE_PORT = "redis.source.port";
-	protected static final String REDIS_SOURCE_TIMEOUT = "redis.source.timeout";
-	protected static final String JEDIS_CLUSTER_CONFIG = "jedis.cluster.config";
+	private static final String REDIS_TIMEOUT = "redisTimeOut";
+
+	private static final String MAX_ACTIVE = "jedisPoolConfig.maxActive";
+
+	private static final String MAX_IDLE = "jedisPoolConfig.maxIdle";
+
+	private static final String MIN_IDLE = "jedisPoolConfig.minIdle";
+
+	private static final String TEST_WHILE_IDLE = "jedisPoolConfig.testWhileIdle";
+
+	private static final String TEST_ON_BORROW = "jedisPoolConfig.testOnBorrow";
+
+	private static final String TEST_ON_RETURN = "jedisPoolConfig.testOnReturn";
+
+	private static final String MAX_WAIT = "jedisPoolConfig.maxWait";
+	   
+	private static final String BLOCK_WHEN_EXHAUSTED = "jedisPoolConfig.blockWhenExhausted";   
+
+	private static final String MIN_EVICTABLE_IDLE_TIME_MS = "jedisPoolConfig.minEvictableIdleTimeMillis";
+
+	private static final String TIME_BETWEEN_EVICTION_MS = "jedisPoolConfig.timeBetweenEvictionRunsMillis";
+
+	private static final String NUMBER_OF_TESTS_EVICTION_RUN = "jedisPoolConfig.numTestsPerEvictionRun";
 	
+	private static final String JEDIS_CLUSTER_CONFIG = "jedis.cluster.config";	
   
+	private static final String REDIS_SOURCE_HOST = "jedis.source.host";	
+	
+	private static final String REDIS_SOURCE_PORT = "jedis.source.port";	
 	
   public void intializeJedisPool() {
   	
   	final String METHOD_NAME = "intializeJedisPool";  
   	
   	String clusterConfigFile= System.getProperty(JEDIS_CLUSTER_CONFIG);
+	
   	Properties properties= System.getProperties();
+	
     ShardedJedisCluster.bootstrap(clusterConfigFile, properties);
     
-    String redisHost = System.getProperty(REDIS_SOURCE_HOST);
-    String redisPort = System.getProperty(REDIS_SOURCE_PORT);
-    String redisTimeOut = System.getProperty(REDIS_SOURCE_TIMEOUT);
+	
+	int timeout = properties != null ? Integer.valueOf(properties.getProperty(REDIS_TIMEOUT, "2000")) : 2000;
+	System.out.println("timeout " + timeout);
+	
+    String redisHost = properties != null ? properties.getProperty(REDIS_SOURCE_HOST) : null;
+    Integer redisPort = (properties != null && properties.getProperty(REDIS_SOURCE_PORT) != null) ? 
+    						Integer.valueOf(properties.getProperty(REDIS_SOURCE_PORT)) : null;
     
-    this.source = new JedisShardInfo(redisHost, redisPort);
+    if (redisHost == null || redisPort == null)
+    	throw new JedisException("One or both System properties jedis.source.host , jedis.source.port are not specified.");
+    
+    this.source = new JedisShardInfo(redisHost, redisPort, timeout);
 
     GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
-      
-    poolConfig.setBlockWhenExhausted(GenericObjectPoolConfig.DEFAULT_BLOCK_WHEN_EXHAUSTED);
-
-    // Maximum active connections to Redis instance
-    poolConfig.setMaxTotal(Integer.valueOf(System.getProperty(REDIS_MAX_POOL_SIZE)));
-    //poolConfig.setMaxTotal(Integer.valueOf("10000")); //For testing
+    
+	if (properties != null){
+		poolConfig.setMaxTotal(Integer.valueOf(properties.getProperty(MAX_ACTIVE, "100")));
+		poolConfig.setMaxIdle(Integer.valueOf(properties.getProperty(MAX_IDLE, "10")));
+		poolConfig.setMinIdle(Integer.valueOf(properties.getProperty(MIN_IDLE, "5")));
+		poolConfig.setBlockWhenExhausted(Boolean.valueOf(properties.getProperty(BLOCK_WHEN_EXHAUSTED, String.valueOf(GenericObjectPoolConfig.DEFAULT_BLOCK_WHEN_EXHAUSTED))));
+		
+		String maxWaitMilli = properties.getProperty(MAX_WAIT);
+		if(maxWaitMilli != null)
+			poolConfig.setMaxWaitMillis(Integer.valueOf(properties.getProperty(MAX_WAIT)));
+		
+		String minEvictableIdleTimeMillis = properties.getProperty(MIN_EVICTABLE_IDLE_TIME_MS);
+		if(minEvictableIdleTimeMillis != null)
+			poolConfig.setMinEvictableIdleTimeMillis(Integer.valueOf(properties.getProperty(MIN_EVICTABLE_IDLE_TIME_MS)));
+		
+		String timeBetweenEvictionRunsMillis = properties.getProperty(TIME_BETWEEN_EVICTION_MS);
+		if(timeBetweenEvictionRunsMillis != null)
+			poolConfig.setTimeBetweenEvictionRunsMillis(Integer.valueOf(properties.getProperty(TIME_BETWEEN_EVICTION_MS)));
+		
+		String numTestsPerEvictionRun = properties.getProperty(NUMBER_OF_TESTS_EVICTION_RUN);
+		if(numTestsPerEvictionRun != null)
+			poolConfig.setNumTestsPerEvictionRun(Integer.valueOf(properties.getProperty(NUMBER_OF_TESTS_EVICTION_RUN)));
+	    
+		poolConfig.setTestWhileIdle(Boolean.valueOf(properties.getProperty(TEST_WHILE_IDLE, "false")));
+	    poolConfig.setTestOnBorrow(Boolean.valueOf(properties.getProperty(TEST_ON_BORROW, "false")));
+	    poolConfig.setTestOnReturn(Boolean.valueOf(properties.getProperty(TEST_ON_RETURN, "false")));
+	}else{
+		poolConfig.setMaxTotal(100);
+		poolConfig.setMaxIdle(10);
+		poolConfig.setMinIdle(5);
+		poolConfig.setBlockWhenExhausted(GenericObjectPoolConfig.DEFAULT_BLOCK_WHEN_EXHAUSTED);
+	    poolConfig.setTestWhileIdle(Boolean.FALSE);
+	    poolConfig.setTestOnBorrow(Boolean.FALSE);
+	    poolConfig.setTestOnReturn(Boolean.FALSE);
+	}
    
-    // Number of connections to Redis that just sit there and do nothing
-    poolConfig.setMaxIdle(10);
-    // Minimum number of idle connections to Redis
-    // These can be seen as always open and ready to serve
-    poolConfig.setMinIdle(5);
-    // Tests whether connections are dead during idle periods
-    poolConfig.setTestWhileIdle(false);
-    // Tests whether connection is dead when connection retrieval method is called
-    poolConfig.setTestOnBorrow(false);
-    // Tests whether connection is dead when returning a connection to the pool
-    poolConfig.setTestOnReturn(false);
-   
-   sourcePool = new JedisPool(poolConfig, redisHost, Integer.valueOf(redisPort), Integer.valueOf(redisTimeOut));
+   sourcePool = new JedisPool(poolConfig, redisHost, Integer.valueOf(redisPort), timeout);
 
  }
   
@@ -175,7 +225,6 @@ public class ShardRebalancer {
 		
 		return false;
 	}
-
 
 	public ShardedJedis getShardedResource() {
 		ShardedJedis jedis;
