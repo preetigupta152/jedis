@@ -1,7 +1,6 @@
 package redis.clients.jedis.shardrebalancer;
 
 
-import java.io.File;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.concurrent.Callable;
@@ -47,21 +46,13 @@ public class ShardRebalancer {
 	private static final String TIME_BETWEEN_EVICTION_MS = "jedisPoolConfig.timeBetweenEvictionRunsMillis";
 
 	private static final String NUMBER_OF_TESTS_EVICTION_RUN = "jedisPoolConfig.numTestsPerEvictionRun";
-	
-	private static final String JEDIS_CLUSTER_CONFIG = "jedis.cluster.config";	
-  
+	  
 	private static final String REDIS_SOURCE_HOST = "jedis.source.host";	
 	
 	private static final String REDIS_SOURCE_PORT = "jedis.source.port";	
 	
-  public void intializeJedisPool() {
+  public void intializeJedisPool(String clusterConfigFile ,Properties properties) {
   	
-  	final String METHOD_NAME = "intializeJedisPool";  
-  	
-  	String clusterConfigFile= System.getProperty(JEDIS_CLUSTER_CONFIG);
-	
-  	Properties properties= System.getProperties();
-	
     ShardedJedisCluster.bootstrap(clusterConfigFile, properties);
     
 	
@@ -131,6 +122,11 @@ public class ShardRebalancer {
 	  super();
 	  this.source = new JedisShardInfo(host, port);
   }
+	
+	public void initiateRebalance(String clusterConfigFile,Properties properties){
+		intializeJedisPool(clusterConfigFile,properties);
+		rebalance();
+	}
 	
 	private void rebalance(){
 
@@ -212,7 +208,7 @@ public class ShardRebalancer {
 	   long millis = stopwatch.elapsed(TimeUnit.MILLISECONDS);
 
 	   System.out.println("**************Time taken to Rebalance the shards : " + stopwatch);
-	   //threadPoolExecutor.shutdown();
+	//   threadPoolExecutor.shutdownNow();
 	   System.out.println("**************After shutdown : ");
 	}
 	
@@ -234,12 +230,6 @@ public class ShardRebalancer {
 	
 	public void returnShardedResource(final ShardedJedis jedis) {
 		ShardedJedisCluster.getPool().returnResource(jedis);
-	}
-	
-	public static void  main(String[] args){
-		ShardRebalancer rebalancer = new ShardRebalancer();
-		rebalancer.intializeJedisPool();
-		rebalancer.rebalance();
 	}
 	
 }
