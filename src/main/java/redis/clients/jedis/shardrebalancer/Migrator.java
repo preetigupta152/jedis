@@ -13,7 +13,7 @@ import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;
 import redis.clients.jedis.shardedcluster.ShardedJedisCluster;
 
-public class Migrator implements Callable<Integer> {
+public class Migrator implements Callable<Boolean> {
 
 	JedisPool sourcePool;
 	
@@ -99,13 +99,14 @@ public class Migrator implements Callable<Integer> {
 		}
 	}
 
-	public Integer call() {
+	public Boolean call() {
+		boolean result = false;
 		try {
 			migrate();
-			
+			result = true;
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
-		return 0;
+		return result;
 	}
 }
